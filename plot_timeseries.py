@@ -16,9 +16,7 @@ import numpy as np
 This script is used to generate timeseries plots from netCDF or ncml files.
 '''
 
-#ncml = 'http://opendap-devel.ooi.rutgers.edu:8090/thredds/dodsC/ooiufs01/Cabled_Array/RS01SBPS/3A-FLORTD101/streamed/RS01SBPS-SF01A-3A-FLORTD101-flort_d_data_record-streamed/RS01SBPS-SF01A-3A-FLORTD101-flort_d_data_record-streamed.ncml'
-
-ncml = 'http://opendap-devel.ooi.rutgers.edu:8090/thredds/dodsC/ufs-west/Global_Southern_Ocean/GS01SUMO/06-METBKA000/telemetered/GS01SUMO-SBD12-06-METBKA000-metbk_hourly-telemetered/GS01SUMO-SBD12-06-METBKA000-metbk_hourly-telemetered.ncml'
+ncml = 'http://opendap-devel.ooi.rutgers.edu:8090/thredds/dodsC/first-in-class/Global_Irminger_Sea/GI01SUMO/06-METBKA000/recovered_host/GI01SUMO-SBD11-06-METBKA000-metbk_a_dcl_instrument_recovered-recovered_host/GI01SUMO-SBD11-06-METBKA000-metbk_a_dcl_instrument_recovered-recovered_host.ncml'
 f = nc.Dataset(ncml)
 
 global fName
@@ -49,13 +47,22 @@ for v in f.variables:
         y_units = ""
         continue
 
-    #ymin = np.nanmin(y_data)
-    #ymax = np.nanmax(y_data)
+    try:
+        ymin = np.nanmin(y_data)
+    except TypeError:
+        ymin = ""
+        continue
+
+    try:
+        ymax = np.nanmax(y_data)
+    except TypeError:
+        ymax = ""
+        continue
 
     fig, ax = plt.subplots()
     plt.grid()
     try:
-        plt.scatter(time, y_data, c='r', marker='o')
+        plt.scatter(time, y_data, c='r', marker='o', lw = .25)
     except ValueError:
         print 'x and y must be the same size'
         continue
@@ -64,13 +71,14 @@ for v in f.variables:
     df = mdates.DateFormatter('%Y-%m-%d')
     ax.xaxis.set_major_formatter(df)
     fig.autofmt_xdate()
+    #plt.xticks(rotation='horizontal')
 
     # Labels
     ax.set_ylabel(f[v].name + " ("+ y_units + ")")
     ax.set_title(fName, fontsize=9)
-    #ax.legend(["Max: %f" % ymax + "\nMin: %f" % ymin], loc='best', fontsize=8)
+    ax.legend(["Max: %f" % ymax + "\nMin: %f" % ymin], loc='best', fontsize=8)
 
-    save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/2016_2_19_westcoast/GS01SUMO/timeseries/GS01SUMO-SBD12-METBK/metbk_hourly'
+    save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/firstinclass/GI01SUMO/GI01SUMO-SBD11-06-METBKA000'
     filename = fName + "_" + v
     save_file = os.path.join(save_dir, filename)  # create save file name
     plt.savefig(str(save_file),dpi=150) # save figure
