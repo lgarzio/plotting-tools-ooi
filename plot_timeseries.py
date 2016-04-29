@@ -11,12 +11,13 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import os
 import numpy as np
+import re
 
 '''
 This script is used to generate timeseries plots from netCDF or ncml files.
 '''
 
-ncml = 'http://opendap-devel.ooi.rutgers.edu:8090/thredds/dodsC/first-in-class/Global_Irminger_Sea/GI01SUMO/06-METBKA000/recovered_host/GI01SUMO-SBD11-06-METBKA000-metbk_a_dcl_instrument_recovered-recovered_host/GI01SUMO-SBD11-06-METBKA000-metbk_a_dcl_instrument_recovered-recovered_host.ncml'
+ncml = 'http://opendap-devel.ooi.rutgers.edu:8090/thredds/dodsC/lgarzio-eval/Global_Station_Papa/GP02HYPM/04-CTDPFL000/telemetered/GP02HYPM-WFP02-04-CTDPFL000-ctdpf_ckl_wfp_instrument-telemetered/GP02HYPM-WFP02-04-CTDPFL000-ctdpf_ckl_wfp_instrument-telemetered.ncml'
 f = nc.Dataset(ncml)
 
 global fName
@@ -29,7 +30,13 @@ time_num = time_var[:]
 time_num_units = time_var.units
 time = nc.num2date(time_num, time_num_units)
 
-for v in f.variables:
+# Identifies variables to skip when plotting
+misc_vars = ['quality', 'string', 'timestamp', 'deployment', 'id', 'provenance', 'qc']
+reg_ex = re.compile('|'.join(misc_vars))
+
+sci_vars = [s for s in f.variables if not reg_ex.search(s)]
+
+for v in sci_vars:
     print v
 
     y_var = f.variables[v]
@@ -71,14 +78,14 @@ for v in f.variables:
     df = mdates.DateFormatter('%Y-%m-%d')
     ax.xaxis.set_major_formatter(df)
     fig.autofmt_xdate()
-    #plt.xticks(rotation='horizontal')
+    #plt.xticks(rotation='vertical')
 
     # Labels
     ax.set_ylabel(f[v].name + " ("+ y_units + ")")
     ax.set_title(fName, fontsize=9)
     ax.legend(["Max: %f" % ymax + "\nMin: %f" % ymin], loc='best', fontsize=8)
 
-    save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/firstinclass/GI01SUMO/GI01SUMO-SBD11-06-METBKA000'
+    save_dir = '/Users/lgarzio/Documents'
     filename = fName + "_" + v
     save_file = os.path.join(save_dir, filename)  # create save file name
     plt.savefig(str(save_file),dpi=150) # save figure
