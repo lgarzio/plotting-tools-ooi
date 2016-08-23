@@ -19,8 +19,9 @@ import re
 This script is used to overlay timeseries plots of telemetered and recovered data from netCDF or ncml files.
 '''
 
-recovered = 'http://opendap.oceanobservatories.org:8090/thredds/dodsC/ooi/lgarzio-marine-rutgers/20160822T055250-CP05MOAS-GL376-03-CTDGVM000-recovered_host-ctdgv_m_glider_instrument_recovered/deployment0001_CP05MOAS-GL376-03-CTDGVM000-recovered_host-ctdgv_m_glider_instrument_recovered.ncml'
-telemetered = 'http://opendap.oceanobservatories.org:8090/thredds/dodsC/ooi/lgarzio-marine-rutgers/20160822T055317-CP05MOAS-GL376-03-CTDGVM000-telemetered-ctdgv_m_glider_instrument/deployment0001_CP05MOAS-GL376-03-CTDGVM000-telemetered-ctdgv_m_glider_instrument.ncml'
+recovered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/recovered_host/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host.ncml'
+telemetered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/telemetered/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered.ncml'
+save_dir = '/Users/output_directory'
 
 rec = nc.Dataset(recovered)
 tel = nc.Dataset(telemetered)
@@ -29,8 +30,6 @@ global fName
 head, tail = os.path.split(recovered)
 fName = tail.split('.', 1)[0]
 title = fName[0:27]
-#title = fName.split('_')[1].split('-')[0:4]
-#title = title[0] + "-" + title[1] + "-" + title[2] + "-" + title[3]
 
 # Gets the recovered and telemetered time variables and converts to dates
 time_rec_var = rec.variables['time']
@@ -92,27 +91,23 @@ for r in sci_vars_rec:
                 t_max = ""
                 continue
 
-            # set up plot
+            # set up overlay plot
             fig, ax = plt.subplots()
             plt.grid()
             plt.margins(y=.1, x=.1)
 
             # create plot of recovered data
             try:
-                #plt.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw = .75, label='Recovered')
                 #rec_plot = plt.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw=.75, ls='-', color='r')
-                rec_plot = plt.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw=.75)
-                rec_plot
+                ax.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw=.75)
             except ValueError:
                 print 'x and y must be the same size'
                 continue
 
-            #overlay plot of telemetered data
+            # overlay plot of telemetered data
             try:
-                #plt.plot(time_tel, t_data, 'x', markeredgecolor='b', label='Telemetered')
                 #tel_plot = plt.plot(time_tel, t_data, 'x', markeredgecolor='b', lw=1.5, ls=':', color='b')
-                tel_plot = plt.plot(time_tel, t_data, 'x', markeredgecolor='b', lw=1.5)
-                tel_plot
+                ax.plot(time_tel, t_data, 'x', markeredgecolor='b', lw=1.5)
             except ValueError:
                 print 'x and y must be the same size'
                 continue
@@ -136,13 +131,70 @@ for r in sci_vars_rec:
             rec_tel = mlines.Line2D([], [], marker='x', markeredgecolor='b', ls=':',
                                     label=("Telemetered" + "\n  Max: %f" % t_max + "\n  Min: %f" % t_min))
             ax.legend(handles=[rec_leg, rec_tel],loc='best', fontsize=8)
-            #ax.legend(["o: Recovered" + "\n    Max: %f" % r_max + "\n    Min: %f" % r_min +
-            #           "\nx: Telemetered" + "\n    Max: %f" % t_max + "\n    Min: %f" % t_min],
-            #          loc='best', fontsize=8, markerscale=0, handlelength=0)
 
             # Save plot
-            save_dir = '/Users/lgarzio/Documents/OOI'
-            filename = title + "_" + r
+            filename = title + "_" + r + "_overlay"
+            save_file = os.path.join(save_dir, filename)  # create save file name
+            plt.savefig(str(save_file),dpi=150) # save figure
+            plt.close()
+
+            # Set up panel plot
+            fig, (ax1, ax2, ax3) = plt.subplots(3, sharex=True, sharey=True)
+            #plt.grid()
+            plt.margins(y=.1, x=.1)
+
+            # plot recovered data
+            try:
+                ax1.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw=.75, label='recovered')
+                ax1.xaxis.grid(True)
+                ax1.yaxis.grid(True)
+            except ValueError:
+                print 'x and y must be the same size'
+                continue
+
+            try:
+                ax2.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw=.75, label='recovered')
+                ax2.xaxis.grid(True)
+                ax2.yaxis.grid(True)
+            except ValueError:
+                print 'x and y must be the same size'
+                continue
+
+            #plot telemetered data
+            try:
+                ax1.plot(time_tel, t_data, 'x', markeredgecolor='b', lw=1.5, label='telemetered')
+            except ValueError:
+                print 'x and y must be the same size'
+                continue
+
+            try:
+                ax3.plot(time_tel, t_data, 'x', markeredgecolor='b', lw=1.5, label='telemetered')
+                ax3.xaxis.grid(True)
+                ax3.yaxis.grid(True)
+            except ValueError:
+                print 'x and y must be the same size'
+                continue
+
+            # Format date axis
+            df = mdates.DateFormatter('%Y-%m-%d')
+            ax1.xaxis.set_major_formatter(df)
+            fig.autofmt_xdate()
+
+            # Format y-axis to disable offset
+            y_formatter = ticker.ScalarFormatter(useOffset=False)
+            ax1.yaxis.set_major_formatter(y_formatter)
+
+            # Labels
+            ax2.set_ylabel(rec[r].name + " ("+ y_units + ")")
+            ax1.set_title(title, fontsize=10)
+
+            # Legends
+            ax1.legend(loc='best', fontsize=6, markerscale=.5)
+            ax2.legend(loc='best', fontsize=6, markerscale=.5)
+            ax3.legend(loc='best', fontsize=6, markerscale=.5)
+
+            # Save plot
+            filename = title + "_" + r + "_panel"
             save_file = os.path.join(save_dir, filename)  # create save file name
             plt.savefig(str(save_file),dpi=150) # save figure
             plt.close()
