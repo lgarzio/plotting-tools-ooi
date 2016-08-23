@@ -44,7 +44,7 @@ time_tel_num_units = time_tel_var.units
 time_tel = nc.num2date(time_tel_num, time_tel_num_units)
 
 # Identifies variables to skip when plotting
-misc_vars = ['quality', 'string', 'timestamp', 'deployment', 'id', 'provenance', 'qc']
+misc_vars = ['quality', 'string', 'timestamp', 'deployment', 'id', 'provenance', 'qc', 'time', 'mission']
 reg_ex = re.compile('|'.join(misc_vars))
 
 sci_vars_rec = [s for s in rec.variables if not reg_ex.search(s)]
@@ -100,7 +100,8 @@ for r in sci_vars_rec:
             # create plot of recovered data
             try:
                 #plt.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw = .75, label='Recovered')
-                rec_plot = plt.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw=.75, ls='-', color='r')
+                #rec_plot = plt.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw=.75, ls='-', color='r')
+                rec_plot = plt.plot(time_rec, r_data, 'o', markerfacecolor='none', markeredgecolor='r', lw=.75)
                 rec_plot
             except ValueError:
                 print 'x and y must be the same size'
@@ -109,7 +110,8 @@ for r in sci_vars_rec:
             #overlay plot of telemetered data
             try:
                 #plt.plot(time_tel, t_data, 'x', markeredgecolor='b', label='Telemetered')
-                tel_plot = plt.plot(time_tel, t_data, 'x', markeredgecolor='b', lw=1.5, ls=':', color='b')
+                #tel_plot = plt.plot(time_tel, t_data, 'x', markeredgecolor='b', lw=1.5, ls=':', color='b')
+                tel_plot = plt.plot(time_tel, t_data, 'x', markeredgecolor='b', lw=1.5)
                 tel_plot
             except ValueError:
                 print 'x and y must be the same size'
