@@ -28,8 +28,9 @@ tel = nc.Dataset(telemetered)
 global fName
 head, tail = os.path.split(recovered)
 fName = tail.split('.', 1)[0]
-title = fName.split('_')[1].split('-')[0:4]
-title = title[0] + "-" + title[1] + "-" + title[2] + "-" + title[3]
+title = fName[0:27]
+#title = fName.split('_')[1].split('-')[0:4]
+#title = title[0] + "-" + title[1] + "-" + title[2] + "-" + title[3]
 
 # Gets the recovered and telemetered time variables and converts to dates
 time_rec_var = rec.variables['time']
