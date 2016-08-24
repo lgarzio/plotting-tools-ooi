@@ -16,12 +16,17 @@ import os
 import re
 
 '''
-This script is used to overlay timeseries plots of telemetered and recovered data from netCDF or ncml files.
+This script is used to create timeseries plots of telemetered and recovered data from netCDF or ncml files.
+"Overlay" plots plot telemetered and recovered data on top of each other, and provide min and max values.
+"Panel" plots create 3 plots on one page
+    1. The top plot is a re-created overlay plot
+    2. The middle plot is recovered data only
+    3. The bottom plot is telemetered data only
 '''
 
 recovered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/recovered_host/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host.ncml'
 telemetered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/telemetered/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered.ncml'
-save_dir = '/Users/output_directory'
+save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/restinclass/Endurance'
 
 rec = nc.Dataset(recovered)
 tel = nc.Dataset(telemetered)
@@ -30,6 +35,19 @@ global fName
 head, tail = os.path.split(recovered)
 fName = tail.split('.', 1)[0]
 title = fName[0:27]
+platform1 = title.split('-')[0]
+platform2 = platform1 + '-' + title.split('-')[1]
+
+def createDir(newDir):
+    # Check if dir exists.. if it doesn't... create it. From Mike S
+    if not os.path.isdir(newDir):
+        try:
+            os.makedirs(newDir)
+        except OSError:
+            if os.path.exists(newDir):
+                pass
+            else:
+                raise
 
 # Gets the recovered and telemetered time variables and converts to dates
 time_rec_var = rec.variables['time']
@@ -43,7 +61,7 @@ time_tel_num_units = time_tel_var.units
 time_tel = nc.num2date(time_tel_num, time_tel_num_units)
 
 # Identifies variables to skip when plotting
-misc_vars = ['quality', 'string', 'timestamp', 'deployment', 'id', 'provenance', 'qc', 'time', 'mission']
+misc_vars = ['quality', 'string', 'timestamp', 'deployment', 'id', 'provenance', 'qc', 'time', 'mission', 'obs']
 reg_ex = re.compile('|'.join(misc_vars))
 
 sci_vars_rec = [s for s in rec.variables if not reg_ex.search(s)]
@@ -134,7 +152,9 @@ for r in sci_vars_rec:
 
             # Save plot
             filename = title + "_" + r + "_overlay"
-            save_file = os.path.join(save_dir, filename)  # create save file name
+            dir1 = os.path.join(save_dir, platform1, platform2, title, "overlay_plots")
+            createDir(dir1)
+            save_file = os.path.join(dir1, filename)  # create save file name
             plt.savefig(str(save_file),dpi=150) # save figure
             plt.close()
 
@@ -195,6 +215,8 @@ for r in sci_vars_rec:
 
             # Save plot
             filename = title + "_" + r + "_panel"
-            save_file = os.path.join(save_dir, filename)  # create save file name
+            dir2 = os.path.join(save_dir, platform1, platform2, title, "panel_plots")
+            createDir(dir2)
+            save_file = os.path.join(dir2, filename)  # create save file name
             plt.savefig(str(save_file),dpi=150) # save figure
             plt.close()
