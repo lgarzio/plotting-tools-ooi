@@ -18,7 +18,8 @@ import datetime
 import pandas as pd
 
 '''
-This script is used to create timeseries plots of telemetered and recovered data from netCDF or ncml files, by month.
+This script is used to create timeseries plots of telemetered and recovered data from netCDF or ncml files, by month,
+between a time range specified by the user (must be < 1 year).
 "Overlay" plots plot telemetered and recovered data on top of each other by month, and provide min and max values.
 "Panel" plots create 3 plots on one page
     1. The top plot is a re-created overlay plot, by month
@@ -30,8 +31,19 @@ recovered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/C
 telemetered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/telemetered/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered.ncml'
 save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/restinclass/Endurance'
 
+# enter deployment dates
+start_time = datetime.datetime(2014, 04, 01, 0, 0, 0)
+end_time = datetime.datetime(2014, 05, 29, 0, 0, 0)
+
 rec = xr.open_dataset(recovered)
 tel = xr.open_dataset(telemetered)
+
+rec = rec.swap_dims({'obs':'time'})
+tel = tel.swap_dims({'obs':'time'})
+
+# Select only the time range indicated
+rec_slice = rec.sel(time=slice(start_time,end_time))
+tel_slice = tel.sel(time=slice(start_time,end_time))
 
 global fName
 head, tail = os.path.split(recovered)
@@ -59,18 +71,20 @@ reg_ex = re.compile('|'.join(misc_vars))
 sci_vars_rec = [s for s in rec.variables if not reg_ex.search(s)]
 sci_vars_tel = [s for s in tel.variables if not reg_ex.search(s)]
 
+
 # Index time by month (recovered and telemetered)
-time_rec = rec['time']
+time_rec = rec_slice['time']
 gMonth_rec = time_rec['time.month']
 months_rec = np.unique(gMonth_rec.data)
 
-time_tel = tel['time']
+time_tel = tel_slice['time']
 gMonth_tel = time_tel['time.month']
 months_tel = np.unique(gMonth_tel.data)
 
 print 'Recovered months present in file: ' + str(months_rec)
 print 'Telemetered months present in file: ' + str(months_tel)
 
+# Only plots months contained in the recovered dataset, if there is additional telemetered data it won't be plotted
 for x in months_rec:
     ind_month_rec = x == gMonth_rec.data
     temp_time_rec = time_rec.data[ind_month_rec]
@@ -164,7 +178,7 @@ for x in months_rec:
                 ax.legend(handles=[rec_leg, rec_tel],loc='best', fontsize=8)
 
                 # Save plot
-                filename = title + "_" + r + "_" + m + year + "_overlay"
+                filename = title + "_" + r + "_" + str(x) + "-" + year + "_overlay"
                 dir1 = os.path.join(save_dir, platform1, platform2, title, "overlay_plots_bymonth")
                 createDir(dir1)
                 save_file = os.path.join(dir1, filename)  # create save file name
@@ -227,7 +241,7 @@ for x in months_rec:
                 ax3.legend(loc='best', fontsize=6, markerscale=.5)
 
                 # Save plot
-                filename = title + "_" + r + "_" + m + year + "_panel"
+                filename = title + "_" + r + "_" + str(x) + "-" + year + "_panel"
                 dir2 = os.path.join(save_dir,  platform1, platform2, title, "panel_plots_bymonth")
                 createDir(dir2)
                 save_file = os.path.join(dir2, filename)  # create save file name

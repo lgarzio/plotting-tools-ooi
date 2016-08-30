@@ -3,9 +3,9 @@ These python scripts were developed for the Ocean Observatories Initiative (OOI)
 
 
 ###Scripts
-- [plot_timeseries.py](https://github.com/lgarzio/plotting-tools/blob/master/plot_timeseries.py): Creates quick timeseries plots.
+- [plot_timeseries.py](https://github.com/lgarzio/plotting-tools/blob/master/plot_timeseries.py): Creates quick timeseries plots of a range of data specified by the user.
 
-- [plot_timeseries_overlay.py](https://github.com/lgarzio/plotting-tools/blob/master/plot_timeseries_overlay.py): Creates "overlay" and "panel" plots of telemetered and recovered data.
+- [plot_timeseries_overlay.py](https://github.com/lgarzio/plotting-tools/blob/master/plot_timeseries_overlay.py): Creates "overlay" and "panel" plots of telemetered and recovered data, between a time range specified by the user (must be < 1 year).
 
 - [plot_timeseries_overlay_bymonth.py](https://github.com/lgarzio/plotting-tools/blob/master/plot_timeseries_overlay_bymonth.py): Creates "overlay" and "panel" plots of telemetered and recovered data, by month.
 
