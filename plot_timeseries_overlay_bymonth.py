@@ -96,15 +96,15 @@ for x in months_rec:
         for t in sci_vars_tel:
             if r == t: # check if r and t are the same variable
 
-                r_var = rec.variables[r]
-                r_data = rec.variables[r].data[ind_month_rec]
+                r_var = rec_slice.variables[r]
+                r_data = rec_slice.variables[r].data[ind_month_rec]
 
-                t_var = tel.variables[t]
-                t_data = tel.variables[t].data[ind_month_tel]
+                t_var = tel_slice.variables[t]
+                t_data = tel_slice.variables[t].data[ind_month_tel]
 
                 try:
-                    y_units = rec[r].units
-                except KeyError:
+                    y_units = rec_slice[r].units
+                except AttributeError:
                     y_units = ""
                     continue
 
