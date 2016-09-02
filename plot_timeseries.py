@@ -54,7 +54,7 @@ def plot_timeseries(t, y, ymin, ymax, args):
     ax.legend(["Max: %f" % ymax + "\nMin: %f" % ymin], loc='best', fontsize=8)
 
     filename = args[0] + "_" + args[1]
-    save_file = os.path.join(dir1, filename)  # create save file name
+    save_file = os.path.join(args[2], filename)  # create save file name
     plt.savefig(str(save_file),dpi=150) # save figure
     plt.close()
 
@@ -119,5 +119,5 @@ for url in urls:
             ymax = ""
             continue
 
-        plotArgs = (fName, v)
+        plotArgs = (fName, v, dir1)
         plot_timeseries(t, y, ymin, ymax, plotArgs)
