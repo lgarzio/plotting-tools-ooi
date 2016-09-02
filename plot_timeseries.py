@@ -83,6 +83,7 @@ for url in urls:
     f = f.swap_dims({'obs':'time'})
     f_slice = f.sel(time=slice(start_time,end_time)) # select only deployment dates provided
     fN = f_slice.source
+    
     global fName
     head, tail = os.path.split(url)
     fName = tail.split('.', 1)[0]
@@ -90,9 +91,12 @@ for url in urls:
     platform1 = title.split('-')[0]
     platform2 = platform1 + '-' + title.split('-')[1]
     method = fName.split('-')[-1]
-    dir1 = os.path.join(save_dir, platform1, platform2, title, method, 'timeseries_' + str(start_time.date()) + '_to_' + str(end_time.date()))
-    createDir(dir1)
+    
     t = f_slice['time'].data
+    t0 = t[0] # first timestamp
+    t1 = t[-1] # last timestamp
+    dir1 = os.path.join(save_dir, platform1, platform2, title, method, 'timeseries_' + str(t0)[0:10] + '_to_' + str(t1)[0:10])
+    createDir(dir1)
 
 
     varList = []
