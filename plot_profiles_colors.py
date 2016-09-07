@@ -102,7 +102,7 @@ for url in urls:
     t = f_slice['time'].data
     t0 = t[0] # first timestamp
     t1 = t[-1] # last timestamp
-    dir1 = os.path.join(save_dir, platform1, platform2, title, method, 'timeseries_' + str(t0)[0:10] + '_to_' + str(t1)[0:10])
+    dir1 = os.path.join(save_dir, platform1, platform2, title, method, 'profiles_' + str(t0)[0:10] + '_to_' + str(t1)[0:10])
     createDir(dir1)
 
     pressure = [s for s in f_slice.variables if rePressure.search(s)]
