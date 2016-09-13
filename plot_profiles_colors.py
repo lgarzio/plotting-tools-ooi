@@ -53,25 +53,28 @@ def plot_profiles(x, y, t, args):
     plt.grid()
     plt.gca().invert_yaxis()
 
-    ax.set_xlabel(args[0] + " (" + args[2] + ")") # x label
-    ax.set_ylabel(args[1] + ' (' + args[3] + ')') # y label
-    ax.set_title(args[4] + '\n' + str(start_time) + ' to ' + str(end_time)) # title
-    filename = str(args[5]) + '_' + args[0] + ".png"
-    save_file = os.path.join(args[6], filename)
+    ax.set_xlabel(args[0] + " (" + args[2] + ")", fontsize=11) # x label
+    ax.set_ylabel(args[1] + ' (' + args[3] + ')', fontsize=11) # y label
+    ax.set_title(args[4] + '\n' + args[5] + ' to ' + args[6], fontsize=12) # title
+    filename = str(args[7]) + '_' + args[0] + ".png"
+    save_file = os.path.join(args[8], filename)
     plt.savefig(save_file,dpi=100) # save figure
     plt.close()
 
 
 save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/restinclass/Endurance'
 
-urls = ['http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/recovered_host/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host.ncml',
-        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/04-DOSTAM000/recovered_host/CE05MOAS-GL319-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host/CE05MOAS-GL319-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host.ncml',
-        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/02-FLORTM000/recovered_host/CE05MOAS-GL319-02-FLORTM000-flort_m_glider_recovered-recovered_host/CE05MOAS-GL319-02-FLORTM000-flort_m_glider_recovered-recovered_host.ncml',
-        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/01-PARADM000/recovered_host/CE05MOAS-GL319-01-PARADM000-parad_m_glider_recovered-recovered_host/CE05MOAS-GL319-01-PARADM000-parad_m_glider_recovered-recovered_host.ncml']
+urls = ['http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/recovered_host/CE05MOAS-GL320-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host/CE05MOAS-GL320-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host.ncml',
+        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/telemetered/CE05MOAS-GL320-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered/CE05MOAS-GL320-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered.ncml',
+        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/02-FLORTM000/recovered_host/CE05MOAS-GL320-02-FLORTM000-flort_m_glider_recovered-recovered_host/CE05MOAS-GL320-02-FLORTM000-flort_m_glider_recovered-recovered_host.ncml',
+        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/02-FLORTM000/telemetered/CE05MOAS-GL320-02-FLORTM000-flort_m_glider_instrument-telemetered/CE05MOAS-GL320-02-FLORTM000-flort_m_glider_instrument-telemetered.ncml',
+        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/04-DOSTAM000/recovered_host/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host.ncml',
+        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/04-DOSTAM000/telemetered/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_instrument-telemetered/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_instrument-telemetered.ncml']
 
+#urls = ['http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/04-DOSTAM000/recovered_host/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host.ncml']
 
-start_time = datetime.datetime(2014, 4, 20, 0, 0, 0)
-end_time = datetime.datetime(2014, 5, 28, 0, 0, 0)
+start_time = datetime.datetime(2014, 10, 7, 0, 0, 0)
+end_time = datetime.datetime(2014, 12, 30, 0, 0, 0)
 
 
 datastrs = ['quality', 'string', 'timestamp', 'deployment', 'id', 'provenance', 'qc',  'time', 'mission', 'obs',
@@ -123,5 +126,5 @@ for url in urls:
         x = f_slice[xN]
         xD = x.data
         x_units = x.units
-        plotArgs = (xN, yN, x_units, y_units, title, fName, dir1)
+        plotArgs = (xN, yN, x_units, y_units, title, str(t0)[0:19], str(t1)[0:19], fName, dir1)
         plot_profiles(x, y, t, plotArgs)

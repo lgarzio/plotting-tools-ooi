@@ -74,7 +74,7 @@ def plot_timeseries_overlay(time_r, time_t, rD, tD, args):
     ax.legend(handles=[rec_leg, rec_tel],loc='best', fontsize=8)
 
     # Save plot
-    filename = args[1] + "_" + args[0].name + "_" + args[3] + "month" + args[4] + "_overlay"
+    filename = args[1] + "_" + args[0].name + "_" + args[4] + '-' + args[3] + "_overlay"
     save_file = os.path.join(args[5], filename)  # create save file name
     plt.savefig(str(save_file),dpi=150) # save figure
     plt.close()
@@ -120,7 +120,7 @@ def plot_timeseries_overlay_panel(time_r, time_t, rD, tD, args):
     ax3.legend(loc='best', fontsize=6, markerscale=.5)
 
     # Save plot
-    filename = args[1] + "_" + args[0].name + "_" + args[3] + "month" + args[4] + "_panel"
+    filename = args[1] + "_" + args[0].name + "_" + args[4] + '-' + args[3] + "_panel"
     save_file = os.path.join(args[5], filename)  # create save file name
     plt.savefig(str(save_file),dpi=150) # save figure
     plt.close()
@@ -128,12 +128,12 @@ def plot_timeseries_overlay_panel(time_r, time_t, rD, tD, args):
 
 save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/restinclass/Endurance'
 
-recovered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/recovered_host/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host.ncml'
-telemetered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/telemetered/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered/CE05MOAS-GL319-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered.ncml'
+recovered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/01-PARADM000/recovered_host/CE05MOAS-GL320-01-PARADM000-parad_m_glider_recovered-recovered_host/CE05MOAS-GL320-01-PARADM000-parad_m_glider_recovered-recovered_host.ncml'
+telemetered = 'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/01-PARADM000/telemetered/CE05MOAS-GL320-01-PARADM000-parad_m_glider_instrument-telemetered/CE05MOAS-GL320-01-PARADM000-parad_m_glider_instrument-telemetered.ncml'
 
 # enter deployment dates
-start_time = datetime.datetime(2014, 4, 20, 0, 0, 0)
-end_time = datetime.datetime(2015, 11, 22, 0, 0, 0)
+start_time = datetime.datetime(2014, 10, 7, 0, 0, 0)
+end_time = datetime.datetime(2014, 12, 30, 0, 0, 0)
 
 rec = xr.open_dataset(recovered)
 rec = rec.swap_dims({'obs':'time'})
@@ -169,6 +169,8 @@ gMonth_tel = time_tel['time.month']
 months_tel = np.unique(gMonth_tel.data)
 
 time_t = time_tel.data
+t0_t = time_t[0]
+t1_t = time_t[-1]
 
 
 # Identifies variables to skip when plotting
@@ -181,6 +183,12 @@ sci_vars_tel = [s for s in tel.variables if not reg_ex.search(s)]
 
 print 'Recovered months present in file: ' + str(months_rec)
 print 'Telemetered months present in file: ' + str(months_tel)
+
+print 'Recovered start time: ' + str(t0_r)
+print 'Recovered end time: ' + str(t1_r)
+
+print 'Telemetered start time: ' + str(t0_t)
+print 'Telemetered end time: ' + str(t1_t)
 
 # Only plots months contained in the recovered dataset, if there is additional telemetered data it won't be plotted
 for x in months_rec: # index by month
