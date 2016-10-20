@@ -11,7 +11,7 @@ These python scripts were developed for the Ocean Observatories Initiative (OOI)
 
 - [plot_profiles_colors.py](https://github.com/lgarzio/plotting-tools/blob/master/plot_profiles_colors.py): Creates profile plots (for gliders and WFP) from netCDF or ncml files for a time range specified by the user. 
 
-- [plot_profiles_colors.py](https://github.com/lgarzio/plotting-tools/blob/master/plot_xsection.py): Creates cross-section plots (for gliders and WFP) from netCDF or ncml files for a time range specified by the user.
+- [plot_xsection.py](https://github.com/lgarzio/plotting-tools/blob/master/plot_xsection.py): Creates cross-section plots (for gliders and WFP) from netCDF or ncml files for a time range specified by the user.
 
 - [plot_variable.py](https://github.com/lgarzio/plotting-tools/blob/master/plot_variable.py): Creates a simple timeseries plot of one variable.
 
