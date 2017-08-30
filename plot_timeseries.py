@@ -72,14 +72,14 @@ end_time = datetime.datetime(2014, 05, 29, 0, 0, 0)
 
 
 # Identifies variables to skip when plotting
-misc_vars = ['quality', 'string', 'timestamp', 'deployment', 'id', 'provenance', 'qc',  'time', 'mission', 'obs',
+misc_vars = ['quality', 'string', 'timestamp', 'deployment', 'provenance', 'qc',  'time', 'mission', 'obs',
             'volt', 'ref', 'sig', 'amp', 'rph', 'calphase', 'phase', 'therm']
 reg_ex = re.compile('|'.join(misc_vars))
 
 
 for url in urls:
     print url
-    f = xr.open_dataset(url)
+    f = xr.open_dataset(url, engine = 'pydap')
     f = f.swap_dims({'obs':'time'})
     f_slice = f.sel(time=slice(start_time,end_time)) # select only deployment dates provided
     fN = f_slice.source
@@ -87,15 +87,16 @@ for url in urls:
     global fName
     head, tail = os.path.split(url)
     fName = tail.split('.', 1)[0]
-    title = fName[0:27]
+    title = fName[15:42]
     platform1 = title.split('-')[0]
     platform2 = platform1 + '-' + title.split('-')[1]
     method = fName.split('-')[-1]
+    deployment = fName.split('_')[0]
     
     t = f_slice['time'].data
     t0 = t[0] # first timestamp
     t1 = t[-1] # last timestamp
-    dir1 = os.path.join(save_dir, platform1, platform2, title, method, 'timeseries_' + str(t0)[0:10] + '_to_' + str(t1)[0:10])
+    dir1 = os.path.join(save_dir, platform1, platform2, title, method, deployment, 'timeseries_' + str(t0)[0:10] + '_to_' + str(t1)[0:10])
     createDir(dir1)
 
 
@@ -109,7 +110,11 @@ for url in urls:
         print v
 
         y = f_slice[v]
-        yD = y.data
+        try:
+            yD = y.data
+        except RuntimeError:
+            print 'RuntimeError: no data'
+            continue
 
         try:
             ymin = np.nanmin(yD)
