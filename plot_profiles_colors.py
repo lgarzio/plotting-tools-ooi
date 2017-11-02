@@ -10,7 +10,7 @@ import matplotlib.cm as cm
 import datetime
 
 '''
-This script is used to create profile plots from netCDF or ncml files for a time range specified by the user.
+This script is used to create profile plots from all netCDF files in a directory, by deployment.
 Time is indicated by color.
 
 '''
@@ -26,10 +26,8 @@ def createDir(newDir):
             else:
                 raise
 
-def plot_profiles(x, y, t, args):
-    xD = x.data
-    yD = y.data
 
+def plot_profiles(t, yN, yD, y_units, xN, xD, x_units, plt_title, t0, t1, fName, dir):
     fig,ax = plt.subplots()
     plt.grid()
     plt.margins(y=.1, x=.1)
@@ -53,78 +51,67 @@ def plot_profiles(x, y, t, args):
     plt.grid()
     plt.gca().invert_yaxis()
 
-    ax.set_xlabel(args[0] + " (" + args[2] + ")", fontsize=11) # x label
-    ax.set_ylabel(args[1] + ' (' + args[3] + ')', fontsize=11) # y label
-    ax.set_title(args[4] + '\n' + args[5] + ' to ' + args[6], fontsize=12) # title
-    filename = str(args[7]) + '_' + args[0] + ".png"
-    save_file = os.path.join(args[8], filename)
+    ax.set_xlabel(xN + " (" + x_units + ")", fontsize=11) # x label
+    ax.set_ylabel(yN + ' (' + y_units + ')', fontsize=11) # y label
+    ax.set_title(plt_title + '\n' + str(t0)[0:19] + ' to ' + str(t1)[0:19], fontsize=12) # title
+    filename = str(fName + '-' + xN + ".png")
+    save_file = os.path.join(dir, filename)
     plt.savefig(save_file,dpi=100) # save figure
     plt.close()
 
 
-save_dir = '/Users/lgarzio/Documents/OOI/DataReviews/restinclass/Endurance'
+def main(rootdir,saveDir):
+    for root, dirs, files in os.walk(rootdir):
+        for filename in files:
+            if filename.endswith('.nc'):
+                print filename
+                file = os.path.join(root,filename)
+                f = xr.open_dataset(file)
+                f = f.swap_dims({'obs':'time'})
+                #f_slice = f.sel(time=slice(stime,etime))
 
-urls = ['http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/recovered_host/CE05MOAS-GL320-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host/CE05MOAS-GL320-05-CTDGVM000-ctdgv_m_glider_instrument_recovered-recovered_host.ncml',
-        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/05-CTDGVM000/telemetered/CE05MOAS-GL320-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered/CE05MOAS-GL320-05-CTDGVM000-ctdgv_m_glider_instrument-telemetered.ncml',
-        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/02-FLORTM000/recovered_host/CE05MOAS-GL320-02-FLORTM000-flort_m_glider_recovered-recovered_host/CE05MOAS-GL320-02-FLORTM000-flort_m_glider_recovered-recovered_host.ncml',
-        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/02-FLORTM000/telemetered/CE05MOAS-GL320-02-FLORTM000-flort_m_glider_instrument-telemetered/CE05MOAS-GL320-02-FLORTM000-flort_m_glider_instrument-telemetered.ncml',
-        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/04-DOSTAM000/recovered_host/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host.ncml',
-        'http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/04-DOSTAM000/telemetered/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_instrument-telemetered/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_instrument-telemetered.ncml']
+                fName = os.path.split(file)[-1].split('.')[0]
+                platform = f.subsite
+                title = platform + '-' + f.node + '-' + f.sensor + '-' + f.collection_method
+                deployment = fName.split('_')[0]
 
-#urls = ['http://opendap.oceanobservatories.org/thredds/dodsC/rest-in-class/Coastal_Endurance/CE05MOAS/04-DOSTAM000/recovered_host/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host/CE05MOAS-GL320-04-DOSTAM000-dosta_abcdjm_glider_recovered-recovered_host.ncml']
+                t = f['time'].data
+                t0 = t[0] # first timestamp
+                t1 = t[-1] # last timestamp
+                dir = os.path.join(saveDir, 'profiles', deployment)
+                createDir(dir)
 
-start_time = datetime.datetime(2014, 10, 7, 0, 0, 0)
-end_time = datetime.datetime(2014, 12, 30, 0, 0, 0)
+                pressure_vars = ['sci_water_pressure_dbar', 'ctdgv_m_glider_instrument_recovered-sci_water_pressure_dbar',
+                             'ctdgv_m_glider_instrument-sci_water_pressure_dbar','ctdpf_ckl_seawater_pressure']
+
+                rePressure = re.compile('|'.join(pressure_vars))
+                pressure = [s for s in f.variables if rePressure.search(s)]
+                yN = ''.join(pressure)
+                yD = f.variables[yN].data
+                y_units = f[yN].units
+
+                skipvars = ['quality', 'string', 'timestamp', 'deployment', 'id', 'provenance', 'qc',  'time', 'mission', 'obs',
+                            'lat', 'lon', 'volt', 'ref', 'sig', 'amp', 'rph', 'calphase', 'phase', 'therm', 'pressure']
+
+                reSkip = re.compile('|'.join(skipvars))
+                varList = []
+                for varNum in f.variables:
+                    varList.append(str(varNum))
+
+                xVars = [s for s in varList if not reSkip.search(s)]
+
+                for xN in xVars:
+                    print xN
+                    xD = f.variables[xN].data
+                    x_units = f[xN].units
+                    plt_title = title + '_' + xN
+                    plot_profiles(t, yN, yD, y_units, xN, xD, x_units, plt_title, t0, t1, fName, dir)
 
 
-datastrs = ['quality', 'string', 'timestamp', 'deployment', 'id', 'provenance', 'qc',  'time', 'mission', 'obs',
-            'lat', 'lon', 'volt', 'ref', 'sig', 'amp', 'rph', 'calphase', 'phase', 'therm']
-
-reV = re.compile('|'.join(datastrs))
-
-pressure_vars = ['sci_water_pressure_dbar', 'ctdgv_m_glider_instrument_recovered-sci_water_pressure_dbar',
-                 'ctdgv_m_glider_instrument-sci_water_pressure_dbar']
-
-rePressure = re.compile('|'.join(pressure_vars))
-
-for url in urls:
-    print url
-    f = xr.open_dataset(url)
-    f = f.swap_dims({'obs':'time'})
-    f_slice = f.sel(time=slice(start_time,end_time))
-#    fN = f_slice.source
-
-    global fName
-    head, tail = os.path.split(url)
-    fName = tail.split('.', 1)[0]
-    title = fName[0:27]
-    platform1 = title.split('-')[0]
-    platform2 = platform1 + '-' + title.split('-')[1]
-    method = fName.split('-')[-1]
-
-    t = f_slice['time'].data
-    t0 = t[0] # first timestamp
-    t1 = t[-1] # last timestamp
-    dir1 = os.path.join(save_dir, platform1, platform2, title, method, 'profiles_' + str(t0)[0:10] + '_to_' + str(t1)[0:10])
-    createDir(dir1)
-
-    pressure = [s for s in f_slice.variables if rePressure.search(s)]
-    pressure = ''.join(pressure)
-    y = f_slice.variables[pressure]
-    yN = pressure
-    y_units = f[yN].units
-    t = f_slice.variables['time']
-    
-    varList = []
-    for varNum in f_slice.variables:
-        varList.append(str(varNum))
-
-    xVars = [s for s in varList if not reV.search(s)]
-
-    for xN in xVars:
-        print xN
-        x = f_slice[xN]
-        xD = x.data
-        x_units = x.units
-        plotArgs = (xN, yN, x_units, y_units, title, str(t0)[0:19], str(t1)[0:19], fName, dir1)
-        plot_profiles(x, y, t, plotArgs)
+if __name__ == '__main__':
+    rootdir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC2/GI02HYPM/GI02HYPM-WFP02-04-CTDPFL000/data'
+    saveDir = '/Users/lgarzio/Documents/OOI/DataReviews/2017/RIC2/GI02HYPM/GI02HYPM-WFP02-04-CTDPFL000/plots'
+    # stime = datetime.datetime(2013, 1, 1, 0, 0, 0)
+    # etime = datetime.datetime(2017, 12, 30, 0, 0, 0)
+    # main(rootdir,saveDir,stime,etime)
+    main(rootdir,saveDir)
