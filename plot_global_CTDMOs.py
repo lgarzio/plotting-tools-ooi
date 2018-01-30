@@ -71,12 +71,12 @@ rootdir = '/Users/lgarzio/Documents/OOI/'
 
 # enter deployment dates
 start_time = datetime.datetime(2013, 1, 1, 0, 0, 0)
-end_time = datetime.datetime(2017, 11, 16, 0, 0, 0)
+end_time = datetime.datetime(2018, 2, 1, 0, 0, 0)
 
 # Identifies variables to skip when plotting
 plt_vars = ['ctdmo_seawater_pressure','ctdmo_seawater_temperature','ctdmo_seawater_conductivity','practical_salinity','density']
 
-colors = ['red','firebrick','orange','gold','darkgreen','mediumseagreen','blue','darkcyan','indigo','purple','slategray','black']
+colors = ['red','firebrick','orange','gold','mediumseagreen','darkcyan','blue','darkgreen','purple','indigo','slategray','black']
 
 for v in plt_vars:
     print v
@@ -108,8 +108,8 @@ for v in plt_vars:
                 plt.grid()
                 plt.margins(y=.05, x=.05)
 
-                # refdes on secondary y-axis only for pressure
-                if v == 'ctdmo_seawater_pressure':
+                # refdes on secondary y-axis only for pressure and density
+                if v in ['ctdmo_seawater_pressure','density']:
                     ax2 = ax1.twinx()
                     ax2.set_ylim(ax1.get_ylim())
                     plt.yticks(median_list,refdes_list,fontsize=9)
