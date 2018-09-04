@@ -2,9 +2,10 @@
 Created on Nov 16 2017
 
 @author: lgarzio
-@brief: This script is used to plot a timeseries of all CTDMO recovered_inst data from an entire platform by deployment
+@brief: This script is used to plot a timeseries of all CTDMO data from an entire platform by deployment
 @usage:
-rootdir: location of files
+dir: location to save output
+f: file containing THREDDs outputUrl locations
 """
 
 import xarray as xr
@@ -15,6 +16,10 @@ import os
 import numpy as np
 import datetime
 from collections import OrderedDict
+import requests
+import re
+import pandas as pd
+import itertools
 
 
 def createDir(newDir):
@@ -29,49 +34,82 @@ def createDir(newDir):
                 raise
 
 
-def get_deployment(rootdir):
+# def get_deployment(rootdir):
+#     dlist = []
+#     for root, dirs, files in os.walk(rootdir):
+#         for filename in files:
+#             if filename.endswith('.nc'):
+#                 deployment = filename[0:14]
+#                 if deployment not in dlist:
+#                     dlist.append(deployment)
+#         return dlist
+
+
+def get_deployment(ds):
     dlist = []
-    for root, dirs, files in os.walk(rootdir):
-        for filename in files:
-            if filename.endswith('.nc'):
-                deployment = filename[0:14]
-                if deployment not in dlist:
-                    dlist.append(deployment)
-        return dlist
+    for d in ds:
+        filename = d.split('/')[-1]
+        deployment = filename[0:14]
+        if deployment not in dlist:
+            dlist.append(deployment)
+    return dlist
 
 
-def get_data(rootdir,v,deploy):
+def get_data(ds,v,deploy):
     dict = OrderedDict()
-    for root, dirs, files in os.walk(rootdir):
-        for filename in files:
-            if filename.endswith('.nc'):
-                deployment = filename[0:14]
-                if deploy == deployment:
-                    file = os.path.join(root,filename)
-                    f = xr.open_dataset(file)
-                    f = f.swap_dims({'obs':'time'})
-                    refdes = f.subsite + '-' + f.node + '-' + f.sensor
+    for d in ds:
+        filename = d.split('/')[-1]
+        deployment = filename[0:14]
+        if deploy == deployment:
+            f = xr.open_dataset(d)
+            f = f.swap_dims({'obs':'time'})
+            refdes = f.subsite + '-' + f.node + '-' + f.sensor
 
-                    f_slice = f.sel(time=slice(start_time,end_time)) # select only deployment dates provided
+            f_slice = f.sel(time=slice(start_time,end_time)) # select only deployment dates provided
 
-                    t = f_slice['time'].data
+            t = f_slice['time'].data
 
-                    y = f_slice[v]
+            y = f_slice[v]
 
-                    yD = y.data
-                    yunits = y.units
-                    dict[refdes] = {}
-                    dict[refdes]['time'] = t
-                    dict[refdes]['yD'] = yD
-                    dict[refdes]['median'] = np.median(yD)
-        return dict, yunits
+            yD = y.data
+            yunits = y.units
+            dict[refdes] = {}
+            dict[refdes]['time'] = t
+            dict[refdes]['yD'] = yD
+            dict[refdes]['median'] = np.median(yD)
+    return dict, yunits
 
 
-rootdir = '/Users/lgarzio/Documents/OOI/'
+def get_datasets(f):
+    tds_url = 'https://opendap.oceanobservatories.org/thredds/dodsC'
+    datasets = []
+    ff = pd.read_csv(f)
+    urls = ff['outputUrl'].tolist()
+    for i in urls:
+        dataset = requests.get(i).text
+        ii = re.findall(r'href=[\'"]?([^\'" >]+)', dataset)
+        x = re.findall(r'(ooi/.*?.nc)', dataset)
+        for i in x:
+            if i.endswith('.nc') == False:
+                x.remove(i)
+        for i in x:
+            try:
+                float(i[-4])
+            except:
+                x.remove(i)
+        dataset = [os.path.join(tds_url, i) for i in x]
+        datasets.append(dataset)
+    datasets = list(itertools.chain(*datasets))
+    return datasets
+
+
+#rootdir = '/Users/lgarzio/Documents/OOI/DataReviews/2018/20180904_GP03FLM/GP03FLMA'
+dir = '/Users/lgarzio/Documents/OOI/DataReviews/2018/20180904_GP03FLM/GP03FLMB'
+f = 'data_request_summary_20180904T1038_GP03FLMB.csv'
 
 # enter deployment dates
-start_time = datetime.datetime(2013, 1, 1, 0, 0, 0)
-end_time = datetime.datetime(2018, 2, 1, 0, 0, 0)
+start_time = datetime.datetime(2015, 6, 7, 6, 0, 0)
+end_time = datetime.datetime(2018, 9, 4, 0, 0, 0)
 
 # Identifies variables to skip when plotting
 plt_vars = ['ctdmo_seawater_pressure','ctdmo_seawater_temperature','ctdmo_seawater_conductivity','practical_salinity','density']
@@ -81,10 +119,12 @@ colors = ['red','firebrick','orange','gold','mediumseagreen','darkcyan','blue','
 for v in plt_vars:
     print v
 
-    dlist = get_deployment(rootdir)
+    ds = get_datasets('/'.join((dir,f)))
+    #dlist = get_deployment(rootdir)
+    dlist = get_deployment(ds)
 
     for deploy in dlist:
-        dict, yunits = get_data(rootdir,v,deploy)
+        dict, yunits = get_data(ds,v,deploy)
         print 'Plotting %s' %deploy
         fig, ax1 = plt.subplots()
 
@@ -112,8 +152,8 @@ for v in plt_vars:
                 if v in ['ctdmo_seawater_pressure','density']:
                     ax2 = ax1.twinx()
                     ax2.set_ylim(ax1.get_ylim())
-                    plt.yticks(median_list,refdes_list,fontsize=9)
-                    plt.subplots_adjust(right=.73)
+                    plt.yticks(median_list,refdes_list,fontsize=8)
+                    plt.subplots_adjust(right=.75)
 
                 # Format date axis
                 df = mdates.DateFormatter('%Y-%m-%d')
@@ -128,7 +168,7 @@ for v in plt_vars:
                 ax1.set_title(refdes.split('-')[0] + ' ' + deploy)
                 fname = deploy + '_' + refdes.split('-')[0] + '_' + v
 
-                sdir = os.path.join(rootdir, 'timeseries')
+                sdir = os.path.join(dir, 'timeseries')
                 createDir(sdir)
                 save_file = os.path.join(sdir, fname)  # create save file name
                 plt.savefig(str(save_file),dpi=150) # save figure
